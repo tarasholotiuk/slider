@@ -1,14 +1,17 @@
 <template>
   <div>
-    <FullPicture></FullPicture>
-    <img :src="getImgUrl(this.pic)" alt="error" >
+    <img class="full-picture" :src="urlForFull" alt="">
     <div class="previews-item">
+
       <ul>
-        <li v-for="pic in showPage(numberPage)" :key="pic">
+        <li v-for="pic in dynamicArr" :key="pic">
           <PreviewsItem :pic="pic"
                         :pics="pics"
                         :getImgUrl="getImgUrl"
-                        @del-item="del"></PreviewsItem>
+                        @del-item="del"
+                        @show-full="showFullPicture">
+
+          </PreviewsItem>
         </li>
       </ul>
     </div>
@@ -33,14 +36,12 @@
 
 <script>
 
-import FullPicture from "@/components/full-picture";
 import PreviewsItem from "@/components/previews-item";
 
 export default {
   name: "gallery",
   components: {
     PreviewsItem,
-    FullPicture
   },
   data() {
     return {
@@ -51,8 +52,9 @@ export default {
       lastPicture: '',
       firstPage: '',
       lastPage: '',
-      tempArr: [],
+      dynamicArr: [],
       maxPages: '',
+      urlForFull: '',
     }
   },
   methods: {
@@ -68,6 +70,9 @@ export default {
     getImgUrl(img) {
       return require('@/assets/img/' + img);
     },
+    showFullPicture(pic) {
+      this.urlForFull = this.getImgUrl(pic);
+    },
     handleFileUpload() {
       // const img = new Image();
       // const vm = this;
@@ -82,16 +87,22 @@ export default {
       // reader.readAsDataURL(file);
     },
     del(item) {
-      this.tempArr.splice(item, 1);
+      this.dynamicArr.splice(item, 1);
       this.pics.splice(item, 1);
       this.countMaxPages();
+      this.showPage(this.numberPage)
+      this.checkPage(this.numberPage);
+      // this.checkPage(this.numberPage);
       // this.showPage();
-      if(this.tempArr.length<=1) {
+      if (this.dynamicArr.length <= 1) {
         this.numberPage--;
         this.checkPage(this.numberPage);
       }
+      console.log(this.dynamicArr)
+
     },
     showPage(n) {
+      console.log(n)
       let arr = [];
       if (n <= 1) {
         arr = this.pics.slice(0, 9);
@@ -99,18 +110,19 @@ export default {
         let count = (n - 1) * 9;
         arr = this.pics.slice(count, count + 9);
       }
-      this.tempArr = arr;
-      return arr;
+      this.dynamicArr = arr;
+      this.urlForFull = this.getImgUrl(this.dynamicArr[0]);
     },
     navigations(e) {
       switch (e.target.name) {
         case "button-forward-page":
           this.numberPage += 1;
+          this.showPage(this.numberPage)
           this.checkPage(this.numberPage);
-
           break;
         case "button-back-page":
           this.numberPage -= 1;
+          this.showPage(this.numberPage)
           this.checkPage(this.numberPage);
           break;
         case "button-forward-img":
@@ -141,9 +153,9 @@ export default {
         this.lastPage = false;
       }
     },
-    countMaxPages(){
+    countMaxPages() {
       let x = this.pics.length % 9;
-      if (x > 0){
+      if (x > 0) {
         this.maxPages = Math.trunc(this.pics.length / 9) + 1;
       } else this.maxPages = Math.trunc(this.pics.length / 9)
     }
@@ -151,18 +163,25 @@ export default {
   mounted() {
     this.getIllustrations();
     this.countMaxPages();
+    this.showPage(this.numberPage);
   }
 }
 </script>
 
 <style scoped>
-div {
-  text-align: center;
-}
-
 div, ul, li, button, img {
   margin: 0;
   padding: 0;
+}
+
+.full-picture {
+  position: absolute;
+  margin: 50px auto 0;
+  width: 1452px;
+  height: 726px;
+  left: 234px;
+
+  background-color: rgba(102, 102, 102, 0.5);
 }
 
 .previews-item {
@@ -177,9 +196,7 @@ div, ul, li, button, img {
 }
 
 ul {
-
   display: flex;
-  /*justify-content: space-between;*/
   justify-content: flex-start;
 }
 

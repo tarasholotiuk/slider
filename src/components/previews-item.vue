@@ -1,7 +1,7 @@
 <template>
   <div class="container" @click="show = !show" >
-    <div class="box" v-bind:class="{ active: show }"></div>
-      <img class="previews-img" :src="getImgUrl(this.pic)" alt="error">
+    <div class="box" :class="{ active: show }" @click="showFullPic"></div>
+      <img class="previews-img" :src="getImgUrl(this.pic)" alt="error" >
       <div class="delete">
         <img src="../assets/icon/delete.png" :name="this.pics.indexOf(this.pic)"  alt="delete icon" @click="delItem"/>
       </div>
@@ -24,9 +24,9 @@ export default {
     }
   },
   methods: {
-    // getImgUrl(img) {
-    //   return require('@/assets/img/' + img);
-    // },
+    showFullPic(){
+      this.$emit("show-full", this.pic);
+  },
     delItem(e){
       this.$emit("del-item", e.target.name);
     }

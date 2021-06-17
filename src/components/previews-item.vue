@@ -2,7 +2,7 @@
   <div class="container" @click="show = !show" >
     <div class="box" v-bind:class="{ active: show }"></div>
       <img class="previews-img" :src="getImgUrl(this.pic)" alt="error">
-      <div class="delete" >
+      <div class="delete">
         <img src="../assets/icon/delete.png" :name="this.pics.indexOf(this.pic)"  alt="delete icon" @click="delItem"/>
       </div>
   </div>
@@ -16,6 +16,7 @@ export default {
   props: {
     pics: Array,
     pic: String,
+    getImgUrl: Function,
   },
   data() {
     return {
@@ -23,11 +24,10 @@ export default {
     }
   },
   methods: {
-    getImgUrl(img) {
-      return require('@/assets/img/' + img);
-    },
+    // getImgUrl(img) {
+    //   return require('@/assets/img/' + img);
+    // },
     delItem(e){
-      console.log(e.target.name)
       this.$emit("del-item", e.target.name);
     }
   },

@@ -1,36 +1,48 @@
 <template>
-  <div>
-    <img class="full-picture" :src="urlForFull" alt="">
-    <div class="previews-item">
+  <div class="main-container">
+    <div class="full-size-picture">
+      <button class="leftArrow" @click="navigations" :disabled="firstPicture">
+        <img  src="../assets/icon/Arrow-left.png" alt="error" id="button-back-img">
+      </button>
+      <div class="full-picture">
+        <img :src="urlForFull" alt="error">
+      </div>
+      <button class="rightArrow" @click="navigations" :disabled="lastPicture">
+        <img  src="../assets/icon/Arrow-right.png" alt="error" id="button-forward-img"
+             >
+      </button>
+    </div>
 
+    <div class="previews-item">
       <ul>
         <li v-for="pic in dynamicArr" :key="pic">
           <PreviewsItem :pic="pic"
                         :pics="pics"
                         :getImgUrl="getImgUrl"
+                        :indexForActive="indexForActive"
                         @del-item="del"
                         @show-full="showFullPicture">
-
+            <input type="radio">
           </PreviewsItem>
         </li>
       </ul>
     </div>
 
     <div class="button-page">
-      <button name="button-back-page" @click="navigations" :disabled="firstPage">назад
+      <button id="button-back-page" @click="navigations" :disabled="firstPage">назад
       </button>
-      <span>{{ numberPage }}  из  {{ this.maxPages }}</span>
-      <button name="button-forward-page" @click="navigations" :disabled="lastPage">
+      <span>{{ numberPage }}  из  {{ maxPages }}</span>
+      <button id="button-forward-page" @click="navigations" :disabled="lastPage">
         вперед
       </button>
     </div>
-    <div class="cont">
-      <div class="large-12 medium-12 small-12 cell">
-        <label>File
-          <input type="file" id="file" ref="file" v-on:change="handleFileUpload()"/>
-        </label>
-      </div>
-    </div>
+    <!--    <div class="cont">-->
+    <!--      <div class="large-12 medium-12 small-12 cell">-->
+    <!--        <label>File-->
+    <!--          <input type="file" id="file" ref="file" v-on:change="handleFileUpload()"/>-->
+    <!--        </label>-->
+    <!--      </div>-->
+    <!--    </div>-->
   </div>
 </template>
 
@@ -55,6 +67,7 @@ export default {
       dynamicArr: [],
       maxPages: '',
       urlForFull: '',
+      indexForActive: '',
     }
   },
   methods: {
@@ -71,38 +84,42 @@ export default {
       return require('@/assets/img/' + img);
     },
     showFullPicture(pic) {
+      this.indexImg = this.dynamicArr.indexOf(pic);
+      // console.log(this.indexImg);
       this.urlForFull = this.getImgUrl(pic);
     },
-    handleFileUpload() {
-      // const img = new Image();
-      // const vm = this;
-      // vm.img = this.$refs.file.files[0]
-      // this.pics.push(vm.img);
-      // console.log(this.pics);
-
-      const image = new Image();
-      // const reader = new FileReader();
-      image.src = this.$refs.file.files[0].name;
-      this.pics.push(image.src);
-      // reader.readAsDataURL(file);
-    },
+    // handleFileUpload() {
+    //   // const img = new Image();
+    //   // const vm = this;
+    //   // vm.img = this.$refs.file.files[0]
+    //   // this.pics.push(vm.img);
+    //   // console.log(this.pics);
+    //
+    //   const image = new Image();
+    //   // const reader = new FileReader();
+    //   image.src = this.$refs.file.files[0].name;
+    //   this.pics.push(image.src);
+    //   // reader.readAsDataURL(file);
+    // },
     del(item) {
-      this.dynamicArr.splice(item, 1);
+      let a = this.dynamicArr.splice(item, 1);
       this.pics.splice(item, 1);
-      this.countMaxPages();
-      this.showPage(this.numberPage)
-      this.checkPage(this.numberPage);
-      // this.checkPage(this.numberPage);
-      // this.showPage();
-      if (this.dynamicArr.length <= 1) {
-        this.numberPage--;
-        this.checkPage(this.numberPage);
-      }
-      console.log(this.dynamicArr)
 
+      if (a.length < 1) {
+        this.numberPage--;
+      }
+      this.showPage(this.numberPage);
+      this.checkPage(this.numberPage);
+      this.countMaxPages();
+
+      if (this.pics.length === 0) {
+        this.urlForFull = require('@/assets/icon/Missingimage.png')
+      }
     },
     showPage(n) {
-      console.log(n)
+      if (this.pics.length === 0) {
+        return;
+      }
       let arr = [];
       if (n <= 1) {
         arr = this.pics.slice(0, 9);
@@ -110,11 +127,41 @@ export default {
         let count = (n - 1) * 9;
         arr = this.pics.slice(count, count + 9);
       }
+      this.lastPicture = false;
+      this.firstPicture = true;
       this.dynamicArr = arr;
       this.urlForFull = this.getImgUrl(this.dynamicArr[0]);
+      this.indexForActive = this.pics.indexOf(this.dynamicArr[0])
+      console.log(this.indexForActive)
+    },
+    checkImg(){
+      if (this.indexImg === this.dynamicArr.length-1){
+        this.lastPicture = true;
+      }else if (this.indexImg === 0){
+        this.firstPicture = true;
+      }else{
+        this.lastPicture = false;
+        this.firstPicture = false;
+      }
+    },
+
+    checkPage(page) {
+      if (this.pics.length <= 9) {
+        this.firstPage = true;
+        this.lastPage = true;
+      } else if (page === 1) {
+        this.firstPage = true;
+        this.lastPage = false;
+      } else if (page === this.maxPages) {
+        this.firstPage = false;
+        this.lastPage = true;
+      } else {
+        this.firstPage = false;
+        this.lastPage = false;
+      }
     },
     navigations(e) {
-      switch (e.target.name) {
+      switch (e.target.id) {
         case "button-forward-page":
           this.numberPage += 1;
           this.showPage(this.numberPage)
@@ -127,37 +174,32 @@ export default {
           break;
         case "button-forward-img":
           this.indexImg += 1;
-          this.check(this.indexImg);
+          this.checkImg();
+          this.showFullPicture(this.dynamicArr[this.indexImg])
+
+          console.log(this.indexImg)
+          // this.check(this.indexImg);
           break;
         case "button-back-img":
           this.indexImg -= 1;
-          this.check(this.indexImg);
+          this.showFullPicture(this.dynamicArr[this.indexImg])
+          this.checkImg()
+          console.log(this.indexImg)
+          // this.check(this.indexImg);
           break;
         default:
           return;
       }
     },
-    checkPage(el) {
-      if (el === 1) {
-        this.firstPage = true;
-        if (this.maxPages !== 1) {
-          this.lastPage = false;
-        }
-      } else if (el === this.maxPages) {
-        this.lastPage = true;
-        if (this.maxPages !== 1) {
-          this.firstPage = false;
-        }
-      } else {
-        this.firstPage = false;
-        this.lastPage = false;
-      }
-    },
     countMaxPages() {
-      let x = this.pics.length % 9;
-      if (x > 0) {
-        this.maxPages = Math.trunc(this.pics.length / 9) + 1;
-      } else this.maxPages = Math.trunc(this.pics.length / 9)
+      let x = this.pics.length / 9;
+      let y = this.pics.length % 9;
+
+      if (y > 0) {
+        this.maxPages = Math.trunc(x) + 1;
+      } else if (x === 0) {
+        this.maxPages = 1
+      } else this.maxPages = Math.trunc(x)
     }
   },
   mounted() {
@@ -174,14 +216,24 @@ div, ul, li, button, img {
   padding: 0;
 }
 
+.main-container {
+  width: 1920px;
+  height: 1200px;
+}
+
 .full-picture {
   position: absolute;
   margin: 50px auto 0;
   width: 1452px;
   height: 726px;
   left: 234px;
+  display: flex;
+  justify-content: center;
+}
 
-  background-color: rgba(102, 102, 102, 0.5);
+.full-picture img {
+  position: absolute;
+  height: 726px;
 }
 
 .previews-item {
@@ -192,7 +244,6 @@ div, ul, li, button, img {
   position: relative;
   width: 1452px;
   height: 140px;
-
 }
 
 ul {
@@ -225,5 +276,45 @@ li {
 
 .button-page > button {
   width: 300px;
+}
+
+.full-size-picture {
+  position: absolute;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  /*left: 0;*/
+}
+
+.leftArrow {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: 0.3s;
+  /*top: 300px;*/
+  /*left: 50px;*/
+
+
+  /*.end {*/
+  /*  display: none;*/
+  /*}*/
+}
+
+.leftArrow > img, .rightArrow > img {
+  width: 50px;
+}
+
+.rightArrow {
+  grid-area: rightArrow;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: 0.3s;
+  /*top: 300px;*/
+  /*right: 50px;*/
+
+  /*.end {*/
+  /*  display: none;*/
+  /*}*/
 }
 </style>

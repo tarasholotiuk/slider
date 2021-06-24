@@ -1,18 +1,18 @@
 <template>
   <div class="main-container">
     <div class="full-size-picture">
-      <a href="#">
-        <img class="leftArrow" @click="navigations" :class="{disabled: firstPicture}"
+      <div class="leftArrow">
+        <img @click="navigations" :class="{disabled: firstPicture}"
              src="../assets/icon/Arrow-left.png" alt="error" id="button-back-img">
-      </a>
+      </div>
       <div class="full-picture">
         <img :src="urlForFull" alt="error">
       </div>
-      <a href="#">
-        <img class="rightArrow" @click="navigations" :class="{disabled: lastPicture}"
+      <div class="rightArrow">
+        <img @click="navigations" :class="{disabled: lastPicture}"
              src="../assets/icon/Arrow-right.png" alt="error" id="button-forward-img"
         >
-      </a>
+      </div>
     </div>
 
     <div class="previews-item">
@@ -30,21 +30,29 @@
       </ul>
     </div>
 
-    <div class="button-page">
-      <button id="button-back-page" @click="navigations" :disabled="firstPage">назад
-      </button>
-      <span>{{ numberPage }}  из  {{ maxPages }}</span>
-      <button id="button-forward-page" @click="navigations" :disabled="lastPage">
-        вперед
-      </button>
+    <div class="navigation-page">
+      <div class="leftArrow">
+        <img @click="navigations" :class="{disabled: firstPage}"
+             src="../assets/icon/Arrow-left.png" alt="error" id="button-back-page">
+      </div>
+      <span>{{ numberPage }}  / {{ maxPages }}</span>
+      <div class="rightArrow">
+        <img @click="navigations" :class="{disabled: lastPage}"
+             src="../assets/icon/Arrow-right.png" alt="error" id="button-forward-page"
+        >
+      </div>
     </div>
-    <!--    <div class="cont">-->
-    <!--      <div class="large-12 medium-12 small-12 cell">-->
-    <!--        <label>File-->
-    <!--          <input type="file" id="file" ref="file" v-on:change="handleFileUpload()"/>-->
-    <!--        </label>-->
-    <!--      </div>-->
-    <!--    </div>-->
+    <div class="upload-img">
+      <!--          <div class="large-12 medium-12 small-12 cell">-->
+      <!--            <label>File-->
+      <!--              <input type="file" id="file" ref="file" v-on:change="handleFileUpload()"/>-->
+      <!--            </label>-->
+      <!--          </div>-->
+      <a href="#" @click="handleFileUpload()">
+        <input type="file" id="file" ref="file" style="opacity:0; position:absolute;"/>
+        Upload new image</a>
+      <a href="#">Upload from Flickr</a>
+    </div>
   </div>
 </template>
 
@@ -90,19 +98,19 @@ export default {
       this.urlForFull = this.getImgUrl(pic);
       this.checkImg();
     },
-    // handleFileUpload() {
-    //   // const img = new Image();
-    //   // const vm = this;
-    //   // vm.img = this.$refs.file.files[0]
-    //   // this.pics.push(vm.img);
-    //   // console.log(this.pics);
-    //
-    //   const image = new Image();
-    //   // const reader = new FileReader();
-    //   image.src = this.$refs.file.files[0].name;
-    //   this.pics.push(image.src);
-    //   // reader.readAsDataURL(file);
-    // },
+    handleFileUpload() {
+      // const img = new Image();
+      // const vm = this;
+      // vm.img = this.$refs.file.files[0]
+      // this.pics.push(vm.img);
+      // console.log(this.pics);
+
+      const image = new Image();
+      // const reader = new FileReader();
+      image.src = this.$refs.file.files[0].name;
+      this.pics.push(image.src);
+      // reader.readAsDataURL(file);
+    },
     del(item) {
       let a = this.dynamicArr.splice(item, 1);
       this.pics.splice(item, 1);
@@ -172,28 +180,18 @@ export default {
     navigations(e) {
       switch (e.target.id) {
         case "button-forward-page":
-          this.numberPage += 1;
+          this.numberPage++;
           this.showPage(this.numberPage)
-          // this.checkPage(this.numberPage);
           break;
         case "button-back-page":
-          this.numberPage -= 1;
+          this.numberPage--;
           this.showPage(this.numberPage)
-          // this.checkPage(this.numberPage);
           break;
         case "button-forward-img":
-          // this.indexImg += 1;
-          // this.checkImg();
           this.showFullPicture(this.dynamicArr[this.indexImg + 1])
-
-          // console.log(this.indexImg)
-          // this.check(this.indexImg);
           break;
         case "button-back-img":
-          // this.indexImg -= 1;
           this.showFullPicture(this.dynamicArr[this.indexImg - 1])
-          // console.log(this.indexImg)
-          // this.check(this.indexImg);
           break;
         default:
           return;
@@ -202,7 +200,6 @@ export default {
     countMaxPages() {
       let x = this.pics.length / 9;
       let y = this.pics.length % 9;
-
       if (y > 0) {
         this.maxPages = Math.trunc(x) + 1;
       } else if (x === 0) {
@@ -224,32 +221,52 @@ div, ul, li, button, img {
   padding: 0;
 }
 
+a, span {
+  font-family: Arial, sans-serif;
+}
+
 .main-container {
+  position: relative;
   width: 1920px;
   height: 1200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.full-size-picture {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 726px;
+  margin-top: 50px;
 }
 
 .full-picture {
-  position: absolute;
-  margin: 50px auto 0;
   width: 1452px;
-  height: 726px;
-  left: 234px;
-  display: flex;
-  justify-content: center;
+  height: 100%;
 }
 
 .full-picture img {
-  position: absolute;
-  height: 726px;
+  height: 100%;
+  width: 100%;
+}
+
+.leftArrow, .rightArrow {
+  width: 41px;
+  height: 70px;
+  margin: 0 20px;
+}
+
+.leftArrow > img, .rightArrow > img {
+  width: 41px;
+  height: 70px;
+  cursor: pointer;
 }
 
 .previews-item {
-  margin: 0;
-  padding: 0;
-  top: 796px;
-  left: 234px;
-  position: relative;
+  margin-top: 20px;
   width: 1452px;
   height: 140px;
 }
@@ -264,65 +281,56 @@ li {
   margin-right: 24px;
 }
 
-.container > button {
-  position: absolute;
-  top: 100px;
-  width: 300px;
-  height: 100px;
-  font-size: 30px;
-}
-
-.button-page {
-  position: relative;
-  height: 100px;
-  width: 1000px;
-  top: 500px;
-  margin: auto;
+.navigation-page {
+  height: 70px;
+  width: 373px;
+  margin-top: 20px;
   display: flex;
   justify-content: space-between;
 }
 
-.button-page > button {
-  width: 300px;
+.navigation-page > span {
+  font-size: 42px;
+  font-weight: bold;
+  line-height: 70px;
 }
 
-.full-size-picture {
-  position: absolute;
+div > .disabled {
+  display: none;
+  cursor: default;
+}
+
+.upload-img {
+  height: 70px;
   width: 100%;
   display: flex;
-  justify-content: space-between;
-  /*left: 0;*/
+  justify-content: center;
+  margin-top: 20px;
 }
 
-.leftArrow {
+.upload-img > a {
+  width: 400px;
+  height: 100%;
+  background-color: #252525;
+  color: white;
+  border-radius: 35px;
+  margin: 0 25px;
+  text-decoration: none;
+  line-height: 100%;
+  text-align: center;
+  align-content: center;
   display: flex;
+  justify-content: center;
   align-items: center;
-  cursor: pointer;
-  transition: 0.3s;
-
-  /*top: 300px;*/
-  /*left: 50px;*/
+  font-size: 32px;
 }
 
-a > .disabled {
-  display: none;
+.upload-img > a:hover {
+  background-color: #464646;
 }
 
-.leftArrow, .rightArrow {
-  width: 50px;
+.upload-img > a:active {
+  background-color: #111111;
 }
 
-.rightArrow {
-  grid-area: rightArrow;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  transition: 0.3s;
-  /*top: 300px;*/
-  /*right: 50px;*/
-
-  /*.end {*/
-  /*  display: none;*/
-  /*}*/
-}
 </style>

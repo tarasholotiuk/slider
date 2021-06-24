@@ -43,13 +43,8 @@
       </div>
     </div>
     <div class="upload-img">
-      <!--          <div class="large-12 medium-12 small-12 cell">-->
-      <!--            <label>File-->
-      <!--              <input type="file" id="file" ref="file" v-on:change="handleFileUpload()"/>-->
-      <!--            </label>-->
-      <!--          </div>-->
-      <a href="#" @click="handleFileUpload()">
-        <input type="file" id="file" ref="file" style="opacity:0; position:absolute;"/>
+      <a href="#">
+        <input type="file" id="file-from-PC" ref="file" accept="image/*" @change="handleFileUpload()"/>
         Upload new image</a>
       <a href="#">Upload from Flickr</a>
     </div>
@@ -91,6 +86,11 @@ export default {
       }
     },
     getImgUrl(img) {
+      if (img.toString().startsWith("https://") || img.toString().startsWith("data:image/"))
+        return img;
+      // if (img.toString().startsWith("data:image/")) {
+      //   return img;
+      // }
       return require('@/assets/img/' + img);
     },
     showFullPicture(pic) {
@@ -98,19 +98,26 @@ export default {
       this.urlForFull = this.getImgUrl(pic);
       this.checkImg();
     },
-    handleFileUpload() {
-      // const img = new Image();
-      // const vm = this;
-      // vm.img = this.$refs.file.files[0]
-      // this.pics.push(vm.img);
-      // console.log(this.pics);
 
-      const image = new Image();
-      // const reader = new FileReader();
-      image.src = this.$refs.file.files[0].name;
-      this.pics.push(image.src);
-      // reader.readAsDataURL(file);
+    handleFileUpload() {
+      const self = this;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        self.pics.unshift(e.target.result);
+      };
+      reader.readAsDataURL(this.$refs.file.files[0]);
+      // this.checkPages();
+      // this.createPreviewArr(this.pageNumber);
     },
+    // async uploadFromFlickr() {
+    //   const randomNumber = Math.floor(Math.random() * 100);
+    //   const response = await fetch(this.url);
+    //   const data = await response.json();
+    //   this.pics.unshift(data.photos.photo[randomNumber].url_m);
+    //   // this.checkPages();
+    //   // this.createPreviewArr(this.pageNumber);
+    // },
+
     del(item) {
       let a = this.dynamicArr.splice(item, 1);
       this.pics.splice(item, 1);
@@ -246,11 +253,12 @@ a, span {
 .full-picture {
   width: 1452px;
   height: 100%;
+  text-align: center;
 }
 
 .full-picture img {
   height: 100%;
-  width: 100%;
+  /*width: 100%;*/
 }
 
 .leftArrow, .rightArrow {
@@ -323,6 +331,13 @@ div > .disabled {
   justify-content: center;
   align-items: center;
   font-size: 32px;
+}
+
+#file-from-PC {
+  position: absolute;
+  width: 400px;
+  height: 70px;
+  opacity: 0;
 }
 
 .upload-img > a:hover {

@@ -1,16 +1,18 @@
 <template>
   <div class="main-container">
     <div class="full-size-picture">
-      <button class="leftArrow" @click="navigations" :disabled="firstPicture">
-        <img  src="../assets/icon/Arrow-left.png" alt="error" id="button-back-img">
-      </button>
+      <a href="#">
+        <img class="leftArrow" @click="navigations" :class="{disabled: firstPicture}"
+             src="../assets/icon/Arrow-left.png" alt="error" id="button-back-img">
+      </a>
       <div class="full-picture">
         <img :src="urlForFull" alt="error">
       </div>
-      <button class="rightArrow" @click="navigations" :disabled="lastPicture">
-        <img  src="../assets/icon/Arrow-right.png" alt="error" id="button-forward-img"
-             >
-      </button>
+      <a href="#">
+        <img class="rightArrow" @click="navigations" :class="{disabled: lastPicture}"
+             src="../assets/icon/Arrow-right.png" alt="error" id="button-forward-img"
+        >
+      </a>
     </div>
 
     <div class="previews-item">
@@ -60,8 +62,8 @@ export default {
       pics: [],
       numberPage: 1,
       indexImg: '',
-      firstPicture: '',
-      lastPicture: '',
+      firstPicture: true,
+      lastPicture: false,
       firstPage: '',
       lastPage: '',
       dynamicArr: [],
@@ -85,8 +87,8 @@ export default {
     },
     showFullPicture(pic) {
       this.indexImg = this.dynamicArr.indexOf(pic);
-      // console.log(this.indexImg);
       this.urlForFull = this.getImgUrl(pic);
+      this.checkImg();
     },
     // handleFileUpload() {
     //   // const img = new Image();
@@ -127,19 +129,26 @@ export default {
         let count = (n - 1) * 9;
         arr = this.pics.slice(count, count + 9);
       }
-      this.lastPicture = false;
-      this.firstPicture = true;
+      // this.lastPicture = false;
+      // this.firstPicture = true;
+      this.indexImg = 0;
       this.dynamicArr = arr;
       this.urlForFull = this.getImgUrl(this.dynamicArr[0]);
       this.indexForActive = this.pics.indexOf(this.dynamicArr[0])
-      console.log(this.indexForActive)
+      this.checkPage(this.numberPage);
+      this.checkImg();
     },
-    checkImg(){
-      if (this.indexImg === this.dynamicArr.length-1){
-        this.lastPicture = true;
-      }else if (this.indexImg === 0){
+    checkImg() {
+      if (this.dynamicArr.length === 1) {
         this.firstPicture = true;
-      }else{
+        this.lastPicture = true;
+      } else if (this.indexImg === this.dynamicArr.length - 1) {
+        this.firstPicture = false;
+        this.lastPicture = true;
+      } else if (this.indexImg === 0) {
+        this.firstPicture = true;
+        this.lastPicture = false;
+      } else {
         this.lastPicture = false;
         this.firstPicture = false;
       }
@@ -165,26 +174,25 @@ export default {
         case "button-forward-page":
           this.numberPage += 1;
           this.showPage(this.numberPage)
-          this.checkPage(this.numberPage);
+          // this.checkPage(this.numberPage);
           break;
         case "button-back-page":
           this.numberPage -= 1;
           this.showPage(this.numberPage)
-          this.checkPage(this.numberPage);
+          // this.checkPage(this.numberPage);
           break;
         case "button-forward-img":
-          this.indexImg += 1;
-          this.checkImg();
-          this.showFullPicture(this.dynamicArr[this.indexImg])
+          // this.indexImg += 1;
+          // this.checkImg();
+          this.showFullPicture(this.dynamicArr[this.indexImg + 1])
 
-          console.log(this.indexImg)
+          // console.log(this.indexImg)
           // this.check(this.indexImg);
           break;
         case "button-back-img":
-          this.indexImg -= 1;
-          this.showFullPicture(this.dynamicArr[this.indexImg])
-          this.checkImg()
-          console.log(this.indexImg)
+          // this.indexImg -= 1;
+          this.showFullPicture(this.dynamicArr[this.indexImg - 1])
+          // console.log(this.indexImg)
           // this.check(this.indexImg);
           break;
         default:
@@ -291,16 +299,16 @@ li {
   align-items: center;
   cursor: pointer;
   transition: 0.3s;
+
   /*top: 300px;*/
   /*left: 50px;*/
-
-
-  /*.end {*/
-  /*  display: none;*/
-  /*}*/
 }
 
-.leftArrow > img, .rightArrow > img {
+a > .disabled {
+  display: none;
+}
+
+.leftArrow, .rightArrow {
   width: 50px;
 }
 

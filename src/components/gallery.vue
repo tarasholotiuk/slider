@@ -44,9 +44,10 @@
     </div>
     <div class="upload-img">
       <a href="#">
-        <input type="file" id="file-from-PC" ref="file" accept="image/*" @change="handleFileUpload()"/>
+        <input type="file" id="file-from-PC" ref="file" accept="image/*"
+               @change="handleFileUpload()"/>
         Upload new image</a>
-      <a href="#">Upload from Flickr</a>
+      <a href="#" @click="uploadFromFlickr()">Upload from Flickr</a>
     </div>
   </div>
 </template>
@@ -88,9 +89,6 @@ export default {
     getImgUrl(img) {
       if (img.toString().startsWith("https://") || img.toString().startsWith("data:image/"))
         return img;
-      // if (img.toString().startsWith("data:image/")) {
-      //   return img;
-      // }
       return require('@/assets/img/' + img);
     },
     showFullPicture(pic) {
@@ -106,32 +104,36 @@ export default {
         self.pics.unshift(e.target.result);
       };
       reader.readAsDataURL(this.$refs.file.files[0]);
-      // this.checkPages();
-      // this.createPreviewArr(this.pageNumber);
+      console.log(this.pics)
+      this.showPage(this.numberPage);
     },
-    // async uploadFromFlickr() {
-    //   const randomNumber = Math.floor(Math.random() * 100);
-    //   const response = await fetch(this.url);
-    //   const data = await response.json();
-    //   this.pics.unshift(data.photos.photo[randomNumber].url_m);
-    //   // this.checkPages();
-    //   // this.createPreviewArr(this.pageNumber);
-    // },
+    async uploadFromFlickr() {
+      let url;
+      do {
+        const randomNumber = Math.floor(Math.random() * 100);
+        const response = await fetch("https://api.flickr.com/services/rest/?method=flickr.photos.search&format=json&nojsoncallback=1&api_key=9c0b191a1d8415714a70a2a3db4abdeb&extras=url_m&text=nature");
+        const data = await response.json();
+        url = data.photos.photo[randomNumber].url_m;
+        console.log(url);
+      } while (this.pics.includes(url))
+      this.pics.unshift(url);
+      this.showPage(this.numberPage);
+    },
 
     del(item) {
-      let a = this.dynamicArr.splice(item, 1);
+      console.log(item);
       this.pics.splice(item, 1);
-
-      if (a.length < 1) {
-        this.numberPage--;
-      }
+      // let a = this.dynamicArr.splice(item, 1);
+      // console.log(a);
       this.showPage(this.numberPage);
-      this.checkPage(this.numberPage);
-      this.countMaxPages();
-
+      // if (this.dynamicArr.length === 0) {
+      //   this.numberPage--;
+      // }
       if (this.pics.length === 0) {
-        this.urlForFull = require('@/assets/icon/Missingimage.png')
+        this.numberPage = 1;
+        this.urlForFull = require('@/assets/icon/Missingimage.png');
       }
+
     },
     showPage(n) {
       if (this.pics.length === 0) {
@@ -144,14 +146,14 @@ export default {
         let count = (n - 1) * 9;
         arr = this.pics.slice(count, count + 9);
       }
-      // this.lastPicture = false;
-      // this.firstPicture = true;
       this.indexImg = 0;
       this.dynamicArr = arr;
       this.urlForFull = this.getImgUrl(this.dynamicArr[0]);
-      this.indexForActive = this.pics.indexOf(this.dynamicArr[0])
+      this.indexForActive = this.pics.indexOf(this.dynamicArr[0]);
+      this.countMaxPages();
       this.checkPage(this.numberPage);
       this.checkImg();
+console.log(this.dynamicArr);
     },
     checkImg() {
       if (this.dynamicArr.length === 1) {

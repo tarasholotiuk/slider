@@ -87,16 +87,21 @@ export default {
       }
     },
     getImgUrl(img) {
-      if (img.toString().startsWith("https://") || img.toString().startsWith("data:image/"))
-        return img;
-      return require('@/assets/img/' + img);
+      try {
+        if (img.toString().startsWith("https://") || img.toString().startsWith("data:image/"))
+          return img;
+        return require('@/assets/img/' + img);
+      } catch {
+        this.numberPage--;
+        this.showPage(this.numberPage);
+      }
     },
     showFullPicture(pic) {
       this.indexImg = this.dynamicArr.indexOf(pic);
       this.urlForFull = this.getImgUrl(pic);
+      console.log(this.urlForFull)
       this.checkImg();
     },
-
     handleFileUpload() {
       const self = this;
       const reader = new FileReader();
@@ -119,21 +124,13 @@ export default {
       this.pics.unshift(url);
       this.showPage(this.numberPage);
     },
-
     del(item) {
-      console.log(item);
       this.pics.splice(item, 1);
-      // let a = this.dynamicArr.splice(item, 1);
-      // console.log(a);
-      this.showPage(this.numberPage);
-      // if (this.dynamicArr.length === 0) {
-      //   this.numberPage--;
-      // }
       if (this.pics.length === 0) {
         this.numberPage = 1;
         this.urlForFull = require('@/assets/icon/Missingimage.png');
       }
-
+      this.showPage(this.numberPage);
     },
     showPage(n) {
       if (this.pics.length === 0) {
@@ -153,7 +150,7 @@ export default {
       this.countMaxPages();
       this.checkPage(this.numberPage);
       this.checkImg();
-console.log(this.dynamicArr);
+      this.showFullPicture(this.dynamicArr[0])
     },
     checkImg() {
       if (this.dynamicArr.length === 1) {

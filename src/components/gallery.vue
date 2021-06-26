@@ -99,6 +99,7 @@ export default {
     },
     showFullPicture(pic) {
       this.indexImg = this.dynamicArr.indexOf(pic);
+      this.indexForActive = this.pics.indexOf(pic);
       this.urlForFull = this.getImgUrl(pic);
       this.checkImg();
     },

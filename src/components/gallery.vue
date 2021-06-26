@@ -1,16 +1,18 @@
 <template>
   <div class="main-container">
     <div class="full-size-picture">
-      <button class="leftArrow" @click="navigations" :disabled="firstPicture">
-        <img  src="../assets/icon/Arrow-left.png" alt="error" id="button-back-img">
-      </button>
+      <div class="leftArrow">
+        <img @click="navigations" :class="{disabled: firstPicture}"
+             src="../assets/icon/Arrow-left.png" alt="error" id="button-back-img">
+      </div>
       <div class="full-picture">
         <img :src="urlForFull" alt="error">
       </div>
-      <button class="rightArrow" @click="navigations" :disabled="lastPicture">
-        <img  src="../assets/icon/Arrow-right.png" alt="error" id="button-forward-img"
-             >
-      </button>
+      <div class="rightArrow">
+        <img @click="navigations" :class="{disabled: lastPicture}"
+             src="../assets/icon/Arrow-right.png" alt="error" id="button-forward-img"
+        >
+      </div>
     </div>
 
     <div class="previews-item">
@@ -28,21 +30,25 @@
       </ul>
     </div>
 
-    <div class="button-page">
-      <button id="button-back-page" @click="navigations" :disabled="firstPage">назад
-      </button>
-      <span>{{ numberPage }}  из  {{ maxPages }}</span>
-      <button id="button-forward-page" @click="navigations" :disabled="lastPage">
-        вперед
-      </button>
+    <div class="navigation-page">
+      <div class="leftArrow">
+        <img @click="navigations" :class="{disabled: firstPage}"
+             src="../assets/icon/Arrow-left.png" alt="error" id="button-back-page">
+      </div>
+      <span>{{ numberPage }}  / {{ maxPages }}</span>
+      <div class="rightArrow">
+        <img @click="navigations" :class="{disabled: lastPage}"
+             src="../assets/icon/Arrow-right.png" alt="error" id="button-forward-page"
+        >
+      </div>
     </div>
-    <!--    <div class="cont">-->
-    <!--      <div class="large-12 medium-12 small-12 cell">-->
-    <!--        <label>File-->
-    <!--          <input type="file" id="file" ref="file" v-on:change="handleFileUpload()"/>-->
-    <!--        </label>-->
-    <!--      </div>-->
-    <!--    </div>-->
+    <div class="upload-img">
+      <a href="#">
+        <input type="file" id="file-from-PC" ref="file" accept="image/*"
+               @change="handleFileUpload()"/>
+        Upload new image</a>
+      <a href="#" @click="uploadFromFlickr()">Upload from Flickr</a>
+    </div>
   </div>
 </template>
 
@@ -60,8 +66,8 @@ export default {
       pics: [],
       numberPage: 1,
       indexImg: '',
-      firstPicture: '',
-      lastPicture: '',
+      firstPicture: true,
+      lastPicture: false,
       firstPage: '',
       lastPage: '',
       dynamicArr: [],
@@ -81,43 +87,55 @@ export default {
       }
     },
     getImgUrl(img) {
-      return require('@/assets/img/' + img);
+      try {
+        if (img.toString().startsWith("https://") || img.toString().startsWith("data:image/"))
+          return img;
+        return require('@/assets/img/' + img);
+      } catch {
+        this.numberPage--;
+        this.showPage(this.numberPage);
+        return require('@/assets/icon/Missingimage.png');
+      }
     },
     showFullPicture(pic) {
       this.indexImg = this.dynamicArr.indexOf(pic);
-      // console.log(this.indexImg);
       this.urlForFull = this.getImgUrl(pic);
+      this.checkImg();
     },
-    // handleFileUpload() {
-    //   // const img = new Image();
-    //   // const vm = this;
-    //   // vm.img = this.$refs.file.files[0]
-    //   // this.pics.push(vm.img);
-    //   // console.log(this.pics);
-    //
-    //   const image = new Image();
-    //   // const reader = new FileReader();
-    //   image.src = this.$refs.file.files[0].name;
-    //   this.pics.push(image.src);
-    //   // reader.readAsDataURL(file);
-    // },
-    del(item) {
-      let a = this.dynamicArr.splice(item, 1);
-      this.pics.splice(item, 1);
-
-      if (a.length < 1) {
-        this.numberPage--;
-      }
+    handleFileUpload() {
+      const self = this;
+      const file = this.$refs.file.files[0]
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        self.pics.push(e.target.result);
+        self.numberPage = self.maxPages;
+        self.showPage(self.numberPage);
+        self.showFullPicture(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    },
+    async uploadFromFlickr() {
+      let url;
+      do {
+        const randomNumber = Math.floor(Math.random() * 100);
+        const response = await fetch("https://api.flickr.com/services/rest/?method=flickr.photos.search&format=json&nojsoncallback=1&api_key=9c0b191a1d8415714a70a2a3db4abdeb&extras=url_m&text=nature");
+        const data = await response.json();
+        url = data.photos.photo[randomNumber].url_m;
+      } while (this.pics.includes(url))
+      this.pics.push(url);
+      this.numberPage = this.maxPages;
       this.showPage(this.numberPage);
-      this.checkPage(this.numberPage);
-      this.countMaxPages();
-
-      if (this.pics.length === 0) {
-        this.urlForFull = require('@/assets/icon/Missingimage.png')
-      }
+      this.showFullPicture(url)
+    },
+    del(item) {
+      this.pics.splice(item, 1);
+      this.showPage(this.numberPage);
+      this.urlForFull = this.getImgUrl(this.dynamicArr[0])
     },
     showPage(n) {
       if (this.pics.length === 0) {
+        this.dynamicArr = [];
+        this.numberPage = 1;
         return;
       }
       let arr = [];
@@ -127,24 +145,29 @@ export default {
         let count = (n - 1) * 9;
         arr = this.pics.slice(count, count + 9);
       }
-      this.lastPicture = false;
-      this.firstPicture = true;
+      this.indexImg = 0;
       this.dynamicArr = arr;
       this.urlForFull = this.getImgUrl(this.dynamicArr[0]);
-      this.indexForActive = this.pics.indexOf(this.dynamicArr[0])
-      console.log(this.indexForActive)
+      this.indexForActive = this.pics.indexOf(this.dynamicArr[0]);
+      this.countMaxPages();
+      this.checkPage(this.numberPage);
+      this.checkImg();
     },
-    checkImg(){
-      if (this.indexImg === this.dynamicArr.length-1){
-        this.lastPicture = true;
-      }else if (this.indexImg === 0){
+    checkImg() {
+      if (this.dynamicArr.length === 1) {
         this.firstPicture = true;
-      }else{
+        this.lastPicture = true;
+      } else if (this.indexImg === this.dynamicArr.length - 1) {
+        this.firstPicture = false;
+        this.lastPicture = true;
+      } else if (this.indexImg === 0) {
+        this.firstPicture = true;
+        this.lastPicture = false;
+      } else {
         this.lastPicture = false;
         this.firstPicture = false;
       }
     },
-
     checkPage(page) {
       if (this.pics.length <= 9) {
         this.firstPage = true;
@@ -163,29 +186,18 @@ export default {
     navigations(e) {
       switch (e.target.id) {
         case "button-forward-page":
-          this.numberPage += 1;
+          this.numberPage++;
           this.showPage(this.numberPage)
-          this.checkPage(this.numberPage);
           break;
         case "button-back-page":
-          this.numberPage -= 1;
+          this.numberPage--;
           this.showPage(this.numberPage)
-          this.checkPage(this.numberPage);
           break;
         case "button-forward-img":
-          this.indexImg += 1;
-          this.checkImg();
-          this.showFullPicture(this.dynamicArr[this.indexImg])
-
-          console.log(this.indexImg)
-          // this.check(this.indexImg);
+          this.showFullPicture(this.dynamicArr[this.indexImg + 1])
           break;
         case "button-back-img":
-          this.indexImg -= 1;
-          this.showFullPicture(this.dynamicArr[this.indexImg])
-          this.checkImg()
-          console.log(this.indexImg)
-          // this.check(this.indexImg);
+          this.showFullPicture(this.dynamicArr[this.indexImg - 1])
           break;
         default:
           return;
@@ -194,7 +206,6 @@ export default {
     countMaxPages() {
       let x = this.pics.length / 9;
       let y = this.pics.length % 9;
-
       if (y > 0) {
         this.maxPages = Math.trunc(x) + 1;
       } else if (x === 0) {
@@ -216,32 +227,53 @@ div, ul, li, button, img {
   padding: 0;
 }
 
+a, span {
+  font-family: Arial, sans-serif;
+}
+
 .main-container {
+  position: relative;
   width: 1920px;
   height: 1200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.full-size-picture {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 726px;
+  margin-top: 50px;
 }
 
 .full-picture {
-  position: absolute;
-  margin: 50px auto 0;
   width: 1452px;
-  height: 726px;
-  left: 234px;
-  display: flex;
-  justify-content: center;
+  height: 100%;
+  text-align: center;
 }
 
 .full-picture img {
-  position: absolute;
-  height: 726px;
+  height: 100%;
+  /*width: 100%;*/
+}
+
+.leftArrow, .rightArrow {
+  width: 41px;
+  height: 70px;
+  margin: 0 20px;
+}
+
+.leftArrow > img, .rightArrow > img {
+  width: 41px;
+  height: 70px;
+  cursor: pointer;
 }
 
 .previews-item {
-  margin: 0;
-  padding: 0;
-  top: 796px;
-  left: 234px;
-  position: relative;
+  margin-top: 20px;
   width: 1452px;
   height: 140px;
 }
@@ -256,65 +288,63 @@ li {
   margin-right: 24px;
 }
 
-.container > button {
-  position: absolute;
-  top: 100px;
-  width: 300px;
-  height: 100px;
-  font-size: 30px;
-}
-
-.button-page {
-  position: relative;
-  height: 100px;
-  width: 1000px;
-  top: 500px;
-  margin: auto;
+.navigation-page {
+  height: 70px;
+  width: 373px;
+  margin-top: 20px;
   display: flex;
   justify-content: space-between;
 }
 
-.button-page > button {
-  width: 300px;
+.navigation-page > span {
+  font-size: 42px;
+  font-weight: bold;
+  line-height: 70px;
 }
 
-.full-size-picture {
-  position: absolute;
+div > .disabled {
+  display: none;
+  cursor: default;
+}
+
+.upload-img {
+  height: 70px;
   width: 100%;
   display: flex;
-  justify-content: space-between;
-  /*left: 0;*/
+  justify-content: center;
+  margin-top: 20px;
 }
 
-.leftArrow {
+.upload-img > a {
+  width: 400px;
+  height: 100%;
+  background-color: #252525;
+  color: white;
+  border-radius: 35px;
+  margin: 0 25px;
+  text-decoration: none;
+  line-height: 100%;
+  text-align: center;
+  align-content: center;
   display: flex;
+  justify-content: center;
   align-items: center;
-  cursor: pointer;
-  transition: 0.3s;
-  /*top: 300px;*/
-  /*left: 50px;*/
-
-
-  /*.end {*/
-  /*  display: none;*/
-  /*}*/
+  font-size: 32px;
 }
 
-.leftArrow > img, .rightArrow > img {
-  width: 50px;
+#file-from-PC {
+  position: absolute;
+  width: 400px;
+  height: 70px;
+  opacity: 0;
 }
 
-.rightArrow {
-  grid-area: rightArrow;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  transition: 0.3s;
-  /*top: 300px;*/
-  /*right: 50px;*/
-
-  /*.end {*/
-  /*  display: none;*/
-  /*}*/
+.upload-img > a:hover {
+  background-color: #464646;
 }
+
+.upload-img > a:active {
+  background-color: #111111;
+}
+
 </style>

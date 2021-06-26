@@ -99,18 +99,19 @@ export default {
     showFullPicture(pic) {
       this.indexImg = this.dynamicArr.indexOf(pic);
       this.urlForFull = this.getImgUrl(pic);
-      console.log(this.urlForFull)
       this.checkImg();
     },
     handleFileUpload() {
       const self = this;
+      const file = this.$refs.file.files[0]
       const reader = new FileReader();
       reader.onload = function (e) {
-        self.pics.unshift(e.target.result);
+        self.pics.push(e.target.result);
+        self.numberPage = self.maxPages;
+        self.showPage(self.numberPage);
+        self.showFullPicture(e.target.result);
       };
-      reader.readAsDataURL(this.$refs.file.files[0]);
-      console.log(this.pics)
-      this.showPage(this.numberPage);
+      reader.readAsDataURL(file);
     },
     async uploadFromFlickr() {
       let url;
@@ -119,9 +120,8 @@ export default {
         const response = await fetch("https://api.flickr.com/services/rest/?method=flickr.photos.search&format=json&nojsoncallback=1&api_key=9c0b191a1d8415714a70a2a3db4abdeb&extras=url_m&text=nature");
         const data = await response.json();
         url = data.photos.photo[randomNumber].url_m;
-        console.log(url);
       } while (this.pics.includes(url))
-      this.pics.unshift(url);
+      this.pics.push(url);
       this.showPage(this.numberPage);
     },
     del(item) {
@@ -150,7 +150,6 @@ export default {
       this.countMaxPages();
       this.checkPage(this.numberPage);
       this.checkImg();
-      this.showFullPicture(this.dynamicArr[0])
     },
     checkImg() {
       if (this.dynamicArr.length === 1) {
@@ -167,7 +166,6 @@ export default {
         this.firstPicture = false;
       }
     },
-
     checkPage(page) {
       if (this.pics.length <= 9) {
         this.firstPage = true;

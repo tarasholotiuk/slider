@@ -1,14 +1,13 @@
 <template>
   <div class="container">
-<!--    <label>-->
-      <div class="box" :class="{ active: show }" @click="showFullPic" tabindex="0" @focusout="show = !show"></div>
-      <img class="previews-img" :src="getImgUrl(this.pic)" alt="error">
-      <div class="delete">
-        <img src="../assets/icon/delete.png" :name="this.pics.indexOf(this.pic)"
-             alt="delete icon" @click="delItem"/>
-      </div>
-<!--      <input type="radio" name="item" @focus="show = true" @blur="show = false" class="radio-btn">-->
-<!--    </label>-->
+    <div class="box"
+         :class="this.indexForActive === this.pics.indexOf(this.pic)? 'active':''"
+         @click="showFullPic"></div>
+    <img class="previews-img" :src="getImgUrl(this.pic)" alt="error">
+    <div class="delete">
+      <img src="../assets/icon/delete.png" :name="this.pics.indexOf(this.pic)"
+           alt="delete icon" @click="delItem"/>
+    </div>
   </div>
 </template>
 
@@ -22,31 +21,14 @@ export default {
     getImgUrl: Function,
     indexForActive: Number,
   },
-  data() {
-    return {
-      show: false,
-      check: "",
-    }
-  },
   methods: {
     showFullPic() {
-      this.show = true;
       this.$emit("show-full", this.pic);
     },
     delItem(e) {
       this.$emit("del-item", e.target.name);
     },
-    // showFirst() {
-    //   if (this.pics.indexOf(this.pic) === this.indexForActive)
-    //     this.check = "checked";
-
-      // this.show = this.pics.indexOf(this.pic) === this.indexForActive;
-    // },
   },
-  mounted() {
-    // this.showFirst();
-  }
-
 }
 </script>
 

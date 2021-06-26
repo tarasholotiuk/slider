@@ -94,6 +94,7 @@ export default {
       } catch {
         this.numberPage--;
         this.showPage(this.numberPage);
+        return require('@/assets/icon/Missingimage.png');
       }
     },
     showFullPicture(pic) {
@@ -122,18 +123,19 @@ export default {
         url = data.photos.photo[randomNumber].url_m;
       } while (this.pics.includes(url))
       this.pics.push(url);
+      this.numberPage = this.maxPages;
       this.showPage(this.numberPage);
+      this.showFullPicture(url)
     },
     del(item) {
       this.pics.splice(item, 1);
-      if (this.pics.length === 0) {
-        this.numberPage = 1;
-        this.urlForFull = require('@/assets/icon/Missingimage.png');
-      }
       this.showPage(this.numberPage);
+      this.urlForFull = this.getImgUrl(this.dynamicArr[0])
     },
     showPage(n) {
       if (this.pics.length === 0) {
+        this.dynamicArr = [];
+        this.numberPage = 1;
         return;
       }
       let arr = [];
